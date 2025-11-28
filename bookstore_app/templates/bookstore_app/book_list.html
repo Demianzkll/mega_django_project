@@ -1,0 +1,38 @@
+<h1>{{book_list_page_title}}</h1>
+
+{% if user.is_authenticated %}
+<h1>Hello, {{ user.username }}!</h1>
+<p>Authenticated as
+    <pre>
+    Username: {{ user.username }}
+    Full name: {{ user.get_full_name }}
+    Email: {{ user.email }}
+    Id: {{ user.id }}
+    Is admin: {{user.is_superuser}}
+    </pre>
+</p>
+
+<form action="{% url "logout" %}" method="post">
+    <label>You are logged in. You can Logout:</label>
+    <button type="submit">Logout</button>
+    {% csrf_token %}
+</form>
+{% else %}
+<h1>Hello, Guest!</h1>
+<p>You are not logged in</p>
+<p>You can <a href="{% url 'login' %}?next={{ request.path }}">Login</a> or 
+    <a href="{% url 'register' %}?next={{ request.path }}">Register</a> if you like.</p>
+{% endif %}
+
+<ul>
+
+<a href="{% url 'book-create' %}">Add New Book</a>
+<br><br>
+{% for book in book_list%}
+    <li> {{ book.title }} 
+        <a href="{% url 'book-detail' book.id %}">View |</a>
+        <a href="{% url 'book-update' book.id %}">Edit |</a>
+        <a href="{% url 'book-delete' book.id %}">Delete</a>
+    </li>
+{% endfor%}
+</ul>

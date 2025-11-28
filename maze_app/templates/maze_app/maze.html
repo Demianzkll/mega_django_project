@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {  border-collapse: collapse;
+ border: 3px solid #333; /* Outer border around the maze */
+ margin: 20px auto; /* Center the maze on the page */}
+td {
+ width: 20px; height: 20px;
+}
+.wall { background-color: black; }
+.open { background-color: white; }
+.brdr {border-width: 1px; border-color: #000000;}
+.path { background-color: blue; }
+</style>
+</head>
+<body>
+<table>
+    {%for row in grid%}
+    {%with r=forloop.counter0%}
+        <tr>
+        {%for cell in row%}
+            {% with c=forloop.counter0 %}
+              {% with r_s=r|stringformat:"s" c_s=c|stringformat:"s" %}
+                {% with key=r_s|add:","|add:c_s %}
+                  {% if key in path %}
+                    <td class="path"></td>
+                  {% elif cell == 0 %}
+                    <td class="open"></td>
+                  {% elif cell == 1 %}
+                    <td class="wall"></td>
+                  {% endif %}
+                {% endwith %}
+              {% endwith %}
+            {% endwith %}
+        {% endfor %}
+        </tr>
+    {% endwith %}
+    {% endfor %}
+    {% comment %}
+ <tr>
+   <td class="open">S</td>
+   <td class="wall"></td>
+   <td class="wall"></td>
+   <td class="open"></td>
+   <td class="wall"></td>
+ </tr>
+ <tr>
+   <td class="open"></td>
+   <td class="open"></td>
+   <td class="open"></td>
+   <td class="open"></td>
+   <td class="wall"></td>
+ </tr>
+
+
+   <tr>
+   <td class="wall"></td>
+   <td class="open"></td>
+   <td class="wall"></td>
+   <td class="open"></td>
+   <td class="wall"></td>
+ </tr>
+ <tr>
+   <td class="wall"></td>
+   <td class="open"></td>
+   <td class="wall"></td>
+   <td class="open"></td>
+   <td class="open"></td>
+ </tr>
+ <tr>
+   <td class="wall"></td>
+   <td class="wall"></td>
+   <td class="wall"></td>
+   <td class="wall"></td>
+   <td class="open">F</td>
+ </tr>
+   {% endcomment %}
+</table>
+</body>
+</html>
