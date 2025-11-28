@@ -1,81 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
-<style>
-table {  border-collapse: collapse;
- border: 3px solid #333; /* Outer border around the maze */
- margin: 20px auto; /* Center the maze on the page */}
-td {
- width: 20px; height: 20px;
-}
-.wall { background-color: black; }
-.open { background-color: white; }
-.brdr {border-width: 1px; border-color: #000000;}
-.path { background-color: blue; }
-</style>
+    <meta charset="UTF-8">
+    <title>Maze {{ size }}x{{ size }}</title>
+    <style>
+        #maze {
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #maze td {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ccc;
+        }
+        .wall {
+            background: #222;
+        }
+        .free {
+            background: #fff;
+        }
+        .visited {
+            background: #9cf;
+            transition: background 0.2s;
+        }
+        .path-cell {
+            background: #4caf50;
+        }
+        .controls {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        button, a.button-link {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            text-decoration: none;
+            background: #eee;
+            cursor: pointer;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
-<table>
-    {%for row in grid%}
-    {%with r=forloop.counter0%}
+
+<h1>Лабіринт {{ size }}x{{ size }}</h1>
+
+<div class="controls">
+    <!-- Згенерувати новий -->
+    <button id="btn-new">Згенерувати новий лабіринт</button>
+
+    <!-- Знайти шлях -->
+    <button id="btn-solve">Знайти шлях</button>
+
+    <!-- Анімація DFS тільки якщо solve == True -->
+    {% if solve %}
+        <button id="btn-animate">Анімація DFS</button>
+    {% else %}
+        <button id="btn-animate" disabled>Анімація DFS (спочатку знайди шлях)</button>
+    {% endif %}
+
+    <!-- Експорт в JSON -->
+    <a class="button-link" id="btn-json" href="{% url 'maze_json' size %}" target="_blank">
+        Експорт у JSON
+    </a>
+</div>
+
+<table id="maze">
+    {% for row in grid %}
         <tr>
-        {%for cell in row%}
-            {% with c=forloop.counter0 %}
-              {% with r_s=r|stringformat:"s" c_s=c|stringformat:"s" %}
-                {% with key=r_s|add:","|add:c_s %}
-                  {% if key in path %}
-                    <td class="path"></td>
-                  {% elif cell == 0 %}
-                    <td class="open"></td>
-                  {% elif cell == 1 %}
-                    <td class="wall"></td>
-                  {% endif %}
+            {% for cell in row %}
+                {% with r=forloop.parentloop.counter0 c=forloop.counter0 %}
+                    {% if cell == 1 %}
+                        <td id="cell-{{ r }}-{{ c }}" class="wall"></td>
+                    {% else %}
+                        <td id="cell-{{ r }}-{{ c }}" class="free"></td>
+                    {% endif %}
                 {% endwith %}
-              {% endwith %}
-            {% endwith %}
-        {% endfor %}
+            {% endfor %}
         </tr>
-    {% endwith %}
     {% endfor %}
-    {% comment %}
- <tr>
-   <td class="open">S</td>
-   <td class="wall"></td>
-   <td class="wall"></td>
-   <td class="open"></td>
-   <td class="wall"></td>
- </tr>
- <tr>
-   <td class="open"></td>
-   <td class="open"></td>
-   <td class="open"></td>
-   <td class="open"></td>
-   <td class="wall"></td>
- </tr>
-
-
-   <tr>
-   <td class="wall"></td>
-   <td class="open"></td>
-   <td class="wall"></td>
-   <td class="open"></td>
-   <td class="wall"></td>
- </tr>
- <tr>
-   <td class="wall"></td>
-   <td class="open"></td>
-   <td class="wall"></td>
-   <td class="open"></td>
-   <td class="open"></td>
- </tr>
- <tr>
-   <td class="wall"></td>
-   <td class="wall"></td>
-   <td class="wall"></td>
-   <td class="wall"></td>
-   <td class="open">F</td>
- </tr>
-   {% endcomment %}
 </table>
+
+<script>
+    const size = {{ size }};
+    const solvePage = {{ solve|yesno:"true,false" }};
+    const path = JSON.parse('{{ path_json|escapejs }}');            // [[0,0], [0,1], ...]
+    const visitedOrder = JSON.parse('{{ visited_json|escapejs }}'); // [[0,0], [1,0], ...]
+
+    // Кнопка "новий лабіринт"
+    document.getElementById('btn-new').addEventListener('click', () => {
+        window.location.href = "{% url 'maze' size %}";
+    });
+
+    // Кнопка "знайти шлях"
+    document.getElementById('btn-solve').addEventListener('click', () => {
+        window.location.href = "{% url 'maze_solve' size %}";
+    });
+
+    // Функція отримання клітинки
+    function getCell(r, c) {
+        return document.getElementById(`cell-${r}-${c}`);
+    }
+
+    // Виділення фінального шляху (зелений)
+    function highlightPath() {
+        path.forEach(([r, c]) => {
+            const cell = getCell(r, c);
+            if (cell) {
+                cell.classList.remove('visited');
+                cell.classList.add('path-cell');
+            }
+        });
+    }
+
+    // Анімація DFS
+    function animateDFS() {
+        // спочатку очищаємо попередні класи
+        for (let r = 0; r < size; r++) {
+            for (let c = 0; c < size; c++) {
+                const cell = getCell(r, c);
+                if (!cell) continue;
+                cell.classList.remove('visited', 'path-cell');
+                if (cell.classList.contains('wall')) continue;
+                cell.classList.add('free');
+            }
+        }
+
+        visitedOrder.forEach(([r, c], idx) => {
+            setTimeout(() => {
+                const cell = getCell(r, c);
+                if (cell && !cell.classList.contains('wall')) {
+                    cell.classList.add('visited');
+                }
+
+                // коли обійшли всі — показуємо фінальний шлях
+                if (idx === visitedOrder.length - 1) {
+                    setTimeout(highlightPath, 300);
+                }
+            }, idx * 80); // швидкість анімації (мс)
+        });
+    }
+
+    // Якщо ми на сторінці зі шляхом — можна відразу підсвітити path
+    if (solvePage && path.length > 0) {
+        highlightPath();
+    }
+
+    const animateBtn = document.getElementById('btn-animate');
+    if (animateBtn && !animateBtn.disabled) {
+        animateBtn.addEventListener('click', animateDFS);
+    }
+</script>
+
 </body>
 </html>
