@@ -26,4 +26,5 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path('register/', views.register, name="register"),
     path('maze/', include('maze_app.urls')),
+    path('guess/', include("guessgame_app.urls")),
 ]
