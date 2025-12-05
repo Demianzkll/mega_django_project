@@ -27,4 +27,5 @@ urlpatterns = [
     path('register/', views.register, name="register"),
     path('maze/', include('maze_app.urls')),
     path('guess/', include("guessgame_app.urls")),
+    path('', include("clothesstore_app.urls"))
 ]

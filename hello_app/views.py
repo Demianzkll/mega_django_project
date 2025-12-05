@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpRequest
 # Create your views here.
 def hello(request, name):
-    # 1. Лічильник переглядів (session)
     views = request.session.get('views', 0)
     views += 1
     request.session['views'] = views

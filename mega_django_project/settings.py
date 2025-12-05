@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'crispy_forms',  
     'crispy_bootstrap5',
     "maze_app",
-    "guessgame_app"
+    "guessgame_app",
+    "clothesstore_app"
 ]
 
 MIDDLEWARE = [
